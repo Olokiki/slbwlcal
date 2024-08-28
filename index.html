@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WL Custom Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-size: cover;
+            color: #333;
+            padding: 20px;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="number"], select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .result p {
+            margin: 0;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>WL Custom Calculator</h1>
+        <div class="form-group">
+            <label for="calculationType">Select Calculation Type:</label>
+            <select id="calculationType" onchange="toggleInputs()">
+                <option value="shortCircuit">Resistance Method(Short Circuit)</option>
+                <option value="openCircuit">Capacitance Method(Open Circuit)</option>
+            </select>
+        </div>
+        
+        <!-- Short Circuit Inputs -->
+        <div id="shortCircuitInputs">
+            <div class="form-group">
+                <label for="r1">R1 (Ohms):</label>
+                <input type="number" id="r1" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="r2">R2 (Ohms):</label>
+                <input type="number" id="r2" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="r3">R3 (Ohms):</label>
+                <input type="number" id="r3" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="length">Cable Length (ft):</label>
+                <input type="number" id="length" step="0.01">
+            </div>
+        </div>
+
+        <!-- Open Circuit Inputs -->
+        <div id="openCircuitInputs" style="display:none;">
+            <div class="form-group">
+                <label for="cableType">Select Cable Type:</label>
+                <select id="cableType">
+                    <option value="48.00">1-32 ZA XS </option>
+                    <option value="35.05">7-32 AS XS </option>
+                    <option value="40.00">7-46 ZVI XS </option>
+                    <option value="28.00">7-48 AI XXS </option>
+                    <option value="28.50">7-50 KA US SSC </option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="rc">rc (Collector Capacitance):</label>
+                <input type="number" id="rc" step="0.01">
+                <select id="rcUnit">
+                    <option value="1">pF</option>
+                    <option value="1000">nF</option>
+                    <option value="1000000">uF</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="rs">rs (Rope Socket Capacitance):</label>
+                <input type="number" id="rs" step="0.01">
+                <select id="rsUnit">
+                    <option value="1">pF</option>
+                    <option value="1000">nF</option>
+                    <option value="1000000">uF</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Output Unit Selector -->
+        <div class="form-group">
+            <label for="outputUnit">Select Output Unit:</label>
+            <select id="outputUnit">
+                <option value="1">Feet (ft)</option>
+                <option value="0.3048">Meters (m)</option>
+            </select>
+        </div>
+
+        <button onclick="calculate()">Calculate</button>
+
+        <div class="result" id="result" style="display:none;">
+            <p id="xOutput"></p>
+            <p id="yOutput"></p>
+        </div>
+    </div>
+
+    <script>
+        function toggleInputs() {
+            const calculationType = document.getElementById('calculationType').value;
+            document.getElementById('shortCircuitInputs').style.display = calculationType === 'shortCircuit' ? 'block' : 'none';
+            document.getElementById('openCircuitInputs').style.display = calculationType === 'openCircuit' ? 'block' : 'none';
+        }
+
+        function calculate() {
+            const calculationType = document.getElementById('calculationType').value;
+            const outputUnit = parseFloat(document.getElementById('outputUnit').value);
+
+            if (calculationType === 'shortCircuit') {
+                const r1 = parseFloat(document.getElementById('r1').value);
+                const r2 = parseFloat(document.getElementById('r2').value);
+                const r3 = parseFloat(document.getElementById('r3').value);
+                const length = parseFloat(document.getElementById('length').value);
+
+                const x = ((r2 - r1 + r3) / (2 * r3)) * length * outputUnit;
+                const y = ((r1 - r2 + r3) / (2 * r3)) * length * outputUnit;
+
+                document.getElementById('xOutput').innerText = `Distance from Collector (x): ${x.toFixed(2)} ${outputUnit === 1 ? 'ft' : 'm'}`;
+                document.getElementById('yOutput').innerText = `Distance from Rope Socket (y): ${y.toFixed(2)} ${outputUnit === 1 ? 'ft' : 'm'}`;
+            } else if (calculationType === 'openCircuit') {
+                const nc = parseFloat(document.getElementById('cableType').value);
+                const rc = parseFloat(document.getElementById('rc').value) * parseFloat(document.getElementById('rcUnit').value);
+                const rs = parseFloat(document.getElementById('rs').value) * parseFloat(document.getElementById('rsUnit').value);
+
+                const x = ((rc / nc) - 1) * outputUnit;
+                const y = ((rs / nc) - 1) * outputUnit;
+
+                document.getElementById('xOutput').innerText = `Distance from Collector (x): ${x.toFixed(2)} ${outputUnit === 1 ? 'ft' : 'm'}`;
+                document.getElementById('yOutput').innerText = `Distance from Rope Socket (y): ${y.toFixed(2)} ${outputUnit === 1 ? 'ft' : 'm'}`;
+            }
+
+            document.getElementById('result').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
